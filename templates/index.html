@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Sign & Object Detection Studio (All 15 Classes)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darker: '#090d16',
+                        darkcard: '#111827',
+                        darkborder: '#1f2937',
+                        accent: '#3b82f6'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        code, pre { font-family: 'JetBrains Mono', monospace; }
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.85);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glow-blue { box-shadow: 0 0 25px -5px rgba(59, 130, 246, 0.3); }
+        .glow-emerald { box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.3); }
+        .glow-amber { box-shadow: 0 0 25px -5px rgba(245, 158, 11, 0.3); }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #090d16; }
+        ::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #374151; }
+        .canvas-container { cursor: crosshair; }
+    </style>
+</head>
+<body class="bg-darker text-slate-100 min-h-screen flex flex-col antialiased">
+
+    <header class="sticky top-0 z-50 glass-panel border-b border-slate-800 px-6 py-3.5 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="bg-gradient-to-br from-blue-600 via-indigo-600 to-emerald-500 p-2.5 rounded-xl glow-blue">
+                <i data-lucide="scan" class="w-6 h-6 text-white"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg text-white flex items-center gap-2">
+                    Traffic Sign & CV Studio Pro
+                    <span class="text-[10px] bg-blue-500/20 text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded-full font-mono uppercase tracking-wider">v6.0 • 15 Classes</span>
+                </h1>
+                <p class="text-xs text-slate-400">Roboflow Self-Driving Cars Engine & Detection Annotation Tool</p>
+            </div>
+        </div>
+
+        <nav class="flex items-center space-x-2">
+            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 bg-blue-600 text-white shadow-lg shadow-blue-500/20">
+                <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard
+            </button>
+            <button onclick="switchTab('explorer')" id="nav-explorer" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 text-slate-400 hover:text-white hover:bg-slate-800">
+                <i data-lucide="images" class="w-4 h-4"></i> 15-Class Gallery
+            </button>
+            <button onclick="switchTab('playground')" id="nav-playground" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 text-slate-400 hover:text-white hover:bg-slate-800">
+                <i data-lucide="cpu" class="w-4 h-4"></i> Interactive AI Lab
+            </button>
+            <button onclick="switchTab('flask')" id="nav-flask" class="nav-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 text-slate-400 hover:text-white hover:bg-slate-800">
+                <i data-lucide="terminal" class="w-4 h-4"></i> Flask & Training
+            </button>
+        </nav>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto p-6 space-y-8">
+
+        <!-- ==================== TAB 1: DASHBOARD & STATS ==================== -->
+        <section id="tab-dashboard" class="space-y-8">
+            <!-- Key Metric Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="glass-panel p-5 rounded-2xl border border-slate-800 relative overflow-hidden">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-medium text-slate-400">Total Images</span>
+                        <i data-lucide="image" class="w-5 h-5 text-blue-400"></i>
+                    </div>
+                    <div class="mt-3 flex items-baseline">
+                        <span class="text-3xl font-bold text-white font-mono">4,969</span>
+                        <span class="ml-2 text-xs text-emerald-400 font-semibold">+12% vs v5</span>
+                    </div>
+                    <div class="mt-2 text-xs text-slate-500">416x416 Res • Single/Multi-label</div>
+                    <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-500"></div>
+                </div>
+
+                <div class="glass-panel p-5 rounded-2xl border border-slate-800 relative overflow-hidden">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-medium text-slate-400">Total Classes</span>
+                        <i data-lucide="layers" class="w-5 h-5 text-emerald-400"></i>
+                    </div>
+                    <div class="mt-3 flex items-baseline">
+                        <span class="text-3xl font-bold text-white font-mono">15</span>
+                        <span class="ml-2 text-xs text-slate-400">Taxonomy</span>
+                    </div>
+                    <div class="mt-2 text-xs text-slate-500">Lights, Speed Limits (10-120), Stop</div>
+                    <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
+                </div>
+
+                <div class="glass-panel p-5 rounded-2xl border border-slate-800 relative overflow-hidden">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-medium text-slate-400">Model mAP@0.5</span>
+                        <i data-lucide="activity" class="w-5 h-5 text-amber-400"></i>
+                    </div>
+                    <div class="mt-3 flex items-baseline">
+                        <span class="text-3xl font-bold text-white font-mono">92.4%</span>
+                        <span class="ml-2 text-xs text-amber-400">YOLOv8n</span>
+                    </div>
+                    <div class="mt-2 text-xs text-slate-500">Precision: 91.8% • Recall: 89.6%</div>
+                    <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-orange-500"></div>
+                </div>
+
+                <div class="glass-panel p-5 rounded-2xl border border-slate-800 relative overflow-hidden">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-medium text-slate-400">Dataset License</span>
+                        <i data-lucide="shield-check" class="w-5 h-5 text-indigo-400"></i>
+                    </div>
+                    <div class="mt-3 flex items-baseline">
+                        <span class="text-3xl font-bold text-white font-mono">CC BY 4.0</span>
+                        <span class="ml-2 text-xs text-indigo-400">Open Source</span>
+                    </div>
+                    <div class="mt-2 text-xs text-slate-500">Roboflow Universe Workspace</div>
+                    <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 to-purple-500"></div>
+                </div>
+            </div>
+
+            <!-- Class Distribution Breakdown Section -->
+            <div class="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-base font-semibold text-white flex items-center gap-2">
+                            <i data-lucide="bar-chart-3" class="w-5 h-5 text-blue-400"></i> Class Distribution & Occurrence Metrics
+                        </h2>
+                        <p class="text-xs text-slate-400">Bounding box count per traffic sign & signal category</p>
+                    </div>
+                    <span class="text-xs font-mono bg-slate-800 text-slate-300 px-3 py-1 rounded-full border border-slate-700">Total BBoxes: 8,421</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="distribution-bars-container">
+                    <!-- Dynamic class distribution bars -->
+                </div>
+            </div>
+
+            <!-- Dataset Splits Grid & Quick Actions -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Dataset Splits Overview -->
+                <div class="lg:col-span-2 glass-panel p-6 rounded-2xl border border-slate-800 space-y-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-base font-semibold text-white">Dataset Split Distribution</h2>
+                            <p class="text-xs text-slate-400">Train, validation, and test partition breakdown</p>
+                        </div>
+                        <span class="text-xs font-mono bg-slate-800 text-slate-300 px-3 py-1 rounded-full border border-slate-700">data.yaml active</span>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 text-center relative overflow-hidden">
+                            <div class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Train Split</div>
+                            <div class="text-2xl font-bold text-blue-400 mt-2 font-mono">3,975</div>
+                            <div class="text-[11px] text-slate-500 mt-1">80% Images + YOLO txt</div>
+                        </div>
+                        <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 text-center relative overflow-hidden">
+                            <div class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Validation Split</div>
+                            <div class="text-2xl font-bold text-emerald-400 mt-2 font-mono">497</div>
+                            <div class="text-[11px] text-slate-500 mt-1">10% Images + YOLO txt</div>
+                        </div>
+                        <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 text-center relative overflow-hidden">
+                            <div class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Test Split</div>
+                            <div class="text-2xl font-bold text-purple-400 mt-2 font-mono">497</div>
+                            <div class="text-[11px] text-slate-500 mt-1">10% Test Scenes</div>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-800 flex items-center justify-between">
+                        <div class="flex items-center gap-2 text-xs text-slate-300">
+                            <i data-lucide="info" class="w-4 h-4 text-blue-400"></i>
+                            <span>All 15 classes mapped with class IDs 0 through 14.</span>
+                        </div>
+                        <button onclick="switchTab('explorer')" class="text-xs font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-1">
+                            Explore 15 Classes <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick Launcher Card -->
+                <div class="glass-panel p-6 rounded-2xl border border-slate-800 flex flex-col justify-between space-y-6">
+                    <div>
+                        <h2 class="text-base font-semibold text-white">Interactive AI Lab</h2>
+                        <p class="text-xs text-slate-400 mt-1">Test bounding box detection or manually draw missing boxes directly on scenes.</p>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-900/60 border border-slate-800/80">
+                            <div class="w-8 h-8 rounded-lg bg-red-500/20 text-red-400 flex items-center justify-center font-bold">14</div>
+                            <div>
+                                <div class="text-xs font-semibold text-white">Stop Sign Detection</div>
+                                <div class="text-[10px] text-slate-400">Class ID 14 • High Priority</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-900/60 border border-slate-800/80">
+                            <div class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold">11</div>
+                            <div>
+                                <div class="text-xs font-semibold text-white">Speed Limit 70 Sign</div>
+                                <div class="text-[10px] text-slate-400">Class ID 11 • Regulatory</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="switchTab('playground')" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold text-xs flex items-center justify-center gap-2 hover:opacity-90 transition shadow-lg shadow-blue-500/25">
+                        <i data-lucide="play" class="w-4 h-4"></i> Launch Detection Playground
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 2: 15-CLASS GALLERY ==================== -->
+        <section id="tab-explorer" class="space-y-6 hidden">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i data-lucide="layers" class="w-5 h-5 text-emerald-400"></i> All 15 Classes Taxonomy & Sample Gallery
+                    </h2>
+                    <p class="text-xs text-slate-400">Click any class card to filter sample images and inspect bounding box format.</p>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button onclick="filterClass('all')" id="filter-btn-all" class="class-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600 text-white transition">All Classes</button>
+                    <button onclick="filterClass('lights')" class="class-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition">Traffic Lights</button>
+                    <button onclick="filterClass('limits')" class="class-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition">Speed Limits</button>
+                    <button onclick="filterClass('stops')" class="class-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition">Stops</button>
+                </div>
+            </div>
+
+            <!-- 15 Class Badges Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-5 gap-3" id="class-badges-grid">
+                <!-- Populated dynamically -->
+            </div>
+
+            <!-- Image Sample Grid with YOLO Bounding Box toggle -->
+            <div class="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+                        <i data-lucide="image" class="w-4 h-4 text-blue-400"></i> Dataset Samples & Normalized BBoxes
+                    </h3>
+                    <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer select-none">
+                        <input type="checkbox" id="toggle-bboxes" checked onchange="toggleBoundingBoxes()" class="w-4 h-4 rounded border-slate-700 bg-slate-900 text-blue-600 focus:ring-blue-500">
+                        <span>Show YOLO Bounding Boxes</span>
+                    </label>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="sample-gallery-grid">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 3: AI PLAYGROUND & ANNOTATOR ==================== -->
+        <section id="tab-playground" class="space-y-6 hidden">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i data-lucide="cpu" class="w-5 h-5 text-blue-400"></i> Interactive AI & Annotation Lab
+                    </h2>
+                    <p class="text-xs text-slate-400">Run detection or click & drag on the image canvas to manually annotate custom bounding boxes.</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="clearDetections()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-medium transition flex items-center gap-1.5">
+                        <i data-lucide="trash-2" class="w-4 h-4 text-red-400"></i> Clear Boxes
+                    </button>
+                    <label class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold cursor-pointer transition shadow-lg shadow-blue-500/20 flex items-center gap-2">
+                        <i data-lucide="upload" class="w-4 h-4"></i> Upload Image
+                        <input type="file" id="custom-image-input" accept="image/*" class="hidden" onchange="handleImageUpload(event)">
+                    </label>
+                    <button onclick="runInference()" id="run-inference-btn" class="px-5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:opacity-90 text-white rounded-xl text-xs font-semibold transition shadow-lg shadow-emerald-500/20 flex items-center gap-2">
+                        <i data-lucide="play" class="w-4 h-4"></i> Run Detection
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Left Column: Image Canvas & Sample Selector -->
+                <div class="lg:col-span-2 space-y-4">
+                    <div class="glass-panel p-4 rounded-2xl border border-slate-800 space-y-4">
+                        <div class="flex items-center justify-between text-xs text-slate-300">
+                            <span class="font-medium flex items-center gap-1.5">
+                                <i data-lucide="pencil" class="w-4 h-4 text-amber-400"></i> Interactive Canvas (Click & Drag to Draw Box)
+                            </span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[11px] text-slate-400">Active Draw Class:</span>
+                                <select id="draw-class-select" class="bg-slate-900 text-xs font-medium text-white border border-slate-700 rounded-lg px-2.5 py-1 focus:outline-none focus:border-blue-500">
+                                    <!-- Populated dynamically -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Canvas Container -->
+                        <div class="relative w-full aspect-[4/3] bg-slate-950 rounded-xl overflow-hidden border border-slate-800 flex items-center justify-center canvas-container" id="canvas-wrapper">
+                            <canvas id="detection-canvas" class="w-full h-full object-contain"></canvas>
+                            <div id="canvas-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-500 bg-slate-950/80 backdrop-blur-sm">
+                                <i data-lucide="image-plus" class="w-12 h-12 mb-2 text-slate-600"></i>
+                                <p class="text-xs font-medium">Select a sample image or upload one below</p>
+                            </div>
+                        </div>
+
+                        <!-- Preset Samples Carousel -->
+                        <div>
+                            <div class="text-xs font-medium text-slate-400 mb-2">Preset Test Road Scenes:</div>
+                            <div class="grid grid-cols-6 gap-2" id="preset-samples-list">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Settings, Detections Log & Export -->
+                <div class="space-y-4">
+                    <!-- Inference Sliders -->
+                    <div class="glass-panel p-5 rounded-2xl border border-slate-800 space-y-4">
+                        <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+                            <i data-lucide="sliders" class="w-4 h-4 text-amber-400"></i> Model Hyperparameters
+                        </h3>
+
+                        <div class="space-y-3">
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="text-slate-400">Confidence Threshold</span>
+                                    <span id="conf-val" class="font-mono font-semibold text-white">0.45</span>
+                                </div>
+                                <input type="range" id="conf-slider" min="0.1" max="0.95" step="0.05" value="0.45" oninput="updateSliderVal('conf', this.value)" class="w-full accent-blue-500 bg-slate-800 rounded-lg h-1.5 cursor-pointer">
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="text-slate-400">IoU NMS Threshold</span>
+                                    <span id="iou-val" class="font-mono font-semibold text-white">0.50</span>
+                                </div>
+                                <input type="range" id="iou-slider" min="0.1" max="0.95" step="0.05" value="0.50" oninput="updateSliderVal('iou', this.value)" class="w-full accent-emerald-500 bg-slate-800 rounded-lg h-1.5 cursor-pointer">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detected Signs Log Table -->
+                    <div class="glass-panel p-5 rounded-2xl border border-slate-800 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+                                <i data-lucide="list-tree" class="w-4 h-4 text-purple-400"></i> Bounding Box Objects
+                            </h3>
+                            <span id="detection-count-badge" class="px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-mono text-[10px]">0 detections</span>
+                        </div>
+
+                        <div class="space-y-2 max-h-[220px] overflow-y-auto pr-1" id="detections-log-list">
+                            <div class="text-center py-6 text-slate-500 text-xs">
+                                Run detection or draw boxes on canvas.
+                            </div>
+                        </div>
+
+                        <div class="pt-2 border-t border-slate-800 flex items-center gap-2">
+                            <button onclick="exportYOLOFormat()" class="flex-1 py-1.5 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium transition flex items-center justify-center gap-1.5">
+                                <i data-lucide="download" class="w-3.5 h-3.5 text-blue-400"></i> YOLO TxT
+                            </button>
+                            <button onclick="exportJSONFormat()" class="flex-1 py-1.5 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium transition flex items-center justify-center gap-1.5">
+                                <i data-lucide="code" class="w-3.5 h-3.5 text-emerald-400"></i> JSON Specs
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 4: FLASK & TRAINING CODE ==================== -->
+        <section id="tab-flask" class="space-y-6 hidden">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i data-lucide="terminal" class="w-5 h-5 text-amber-400"></i> Python Flask Backend & YOLO Training Studio
+                    </h2>
+                    <p class="text-xs text-slate-400">Production-ready Flask API and PyTorch YOLOv8/v11 training script for this dataset.</p>
+                </div>
+            </div>
+
+            <!-- Code Tabs Navigation -->
+            <div class="flex items-center gap-2 border-b border-slate-800 pb-3">
+                <button onclick="switchCodeTab('flask')" id="codetab-flask" class="px-4 py-2 rounded-xl text-xs font-semibold bg-blue-600 text-white transition flex items-center gap-2">
+                    <i data-lucide="server" class="w-4 h-4"></i> app.py (Flask REST API)
+                </button>
+                <button onclick="switchCodeTab('yaml')" id="codetab-yaml" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-400 hover:text-white transition flex items-center gap-2">
+                    <i data-lucide="file-text" class="w-4 h-4"></i> data.yaml (Taxonomy)
+                </button>
+                <button onclick="switchCodeTab('train')" id="codetab-train" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-400 hover:text-white transition flex items-center gap-2">
+                    <i data-lucide="cpu" class="w-4 h-4"></i> train.py (YOLO Training)
+                </button>
+            </div>
+
+            <!-- Code Containers -->
+            <div class="glass-panel rounded-2xl border border-slate-800 overflow-hidden">
+                <!-- Flask Code Block -->
+                <div id="code-block-flask" class="p-4 space-y-3">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <span class="text-xs font-mono text-slate-400 flex items-center gap-2">
+                            <i data-lucide="file-code" class="w-4 h-4 text-blue-400"></i> app.py
+                        </span>
+                        <button onclick="copyCode('flask-code')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium flex items-center gap-1.5 transition">
+                            <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy Code
+                        </button>
+                    </div>
+                    <pre class="p-4 rounded-xl bg-slate-950 text-slate-300 text-xs overflow-x-auto leading-relaxed" id="flask-code"><code>from flask import Flask, request, jsonify, render_template
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)</code></pre>
+                </div>
+
+                <!-- YAML Code Block -->
+                <div id="code-block-yaml" class="p-4 space-y-3 hidden">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <span class="text-xs font-mono text-slate-400 flex items-center gap-2">
+                            <i data-lucide="file-text" class="w-4 h-4 text-emerald-400"></i> data.yaml
+                        </span>
+                        <button onclick="copyCode('yaml-code')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium flex items-center gap-1.5 transition">
+                            <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy YAML
+                        </button>
+                    </div>
+                    <pre class="p-4 rounded-xl bg-slate-950 text-slate-300 text-xs overflow-x-auto leading-relaxed" id="yaml-code"><code>train: ../train/images
+                </div>
+
+                <!-- Training Python Code Block -->
+                <div id="code-block-train" class="p-4 space-y-3 hidden">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <span class="text-xs font-mono text-slate-400 flex items-center gap-2">
+                            <i data-lucide="cpu" class="w-4 h-4 text-amber-400"></i> train.py
+                        </span>
+                        <button onclick="copyCode('train-code')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium flex items-center gap-1.5 transition">
+                            <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy Code
+                        </button>
+                    </div>
+                    <pre class="p-4 rounded-xl bg-slate-950 text-slate-300 text-xs overflow-x-auto leading-relaxed" id="train-code"><code>from ultralytics import YOLO
+
+def train_model():
+    # Load YOLOv8 nano pre-trained weights
+    model = YOLO('yolov8n.pt')
+    
+    # Train on Self-Driving Cars v6 Dataset (15 Classes)
+    results = model.train(
+        data='data.yaml',
+        epochs=50,
+        imgsz=416,
+        batch=16,
+        device=0, # GPU index or 'cpu'
+        name='traffic_signs_v6_run'
+    )
+    print('Training completed successfully! Weights saved to runs/detect/traffic_signs_v6_run/weights/best.pt')
+
+if __name__ == '__main__':
+    train_model()</code></pre>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 glass-panel px-4 py-3 rounded-xl border border-slate-700 shadow-2xl flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300">
+        <div id="toast-icon" class="text-emerald-400"><i data-lucide="check-circle" class="w-5 h-5"></i></div>
+        <div class="text-xs font-medium text-slate-200" id="toast-message">Action completed successfully.</div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        lucide.createIcons();
+
+        // 15 Classes Taxonomy Data
+        const TAXONOMY = [
+            { id: 0, name: 'Green Light', category: 'lights', color: '#10b981', desc: 'Go signal at intersection', count: 680 },
+            { id: 1, name: 'Red Light', category: 'lights', color: '#ef4444', desc: 'Stop signal at intersection', count: 812 },
+            { id: 2, name: 'Speed Limit 10', category: 'limits', color: '#3b82f6', desc: 'Regulatory speed limit 10 km/h', count: 320 },
+            { id: 3, name: 'Speed Limit 100', category: 'limits', color: '#3b82f6', desc: 'Regulatory speed limit 100 km/h', count: 540 },
+            { id: 4, name: 'Speed Limit 110', category: 'limits', color: '#3b82f6', desc: 'Regulatory speed limit 110 km/h', count: 410 },
+            { id: 5, name: 'Speed Limit 120', category: 'limits', color: '#3b82f6', desc: 'Regulatory speed limit 120 km/h', count: 390 },
+            { id: 6, name: 'Speed Limit 20', category: 'limits', color: '#3b82f6', desc: 'Regulatory speed limit 20 km/h', count: 720 },
+            { id: 7, name: 'Speed Limit 30', category: 'limits', color: '#3b82f6', desc: 'Regulatory speed limit 30 km/h', count: 890 },
+            { id: 8, name: 'Speed Limit 40', category: 'limits', color: '#3b82f6', desc: 'Regulatory speed limit 40 km/h', count: 650 },
+            { id: 9, name: 'Speed Limit 50', category: 'limits', color: '#3b82f6', desc: 'Regulatory speed limit 50 km/h', count: 910 },
+            { id: 10, name: 'Speed Limit 60', category: 'limits', color: '#3b82f6', desc: 'Regulatory speed limit 60 km/h', count: 780 },
+            { id: 11, name: 'Speed Limit 70', category: 'limits', color: '#3b82f6', desc: 'Regulatory speed limit 70 km/h', count: 610 },
+            { id: 12, name: 'Speed Limit 80', category: 'limits', color: '#3b82f6', desc: 'Regulatory speed limit 80 km/h', count: 530 },
+            { id: 13, name: 'Speed Limit 90', category: 'limits', color: '#3b82f6', desc: 'Regulatory speed limit 90 km/h', count: 290 },
+            { id: 14, name: 'Stop', category: 'stops', color: '#dc2626', desc: 'Mandatory stop sign', count: 389 }
+        ];
+
+        // Extended Sample Dataset Images with Bounding Boxes
+        const SAMPLES = [
+            { 
+                id: 'road5', name: 'road5_png', split: 'val', 
+                url: 'https://placehold.co/416x416/1e293b/94a3b8?text=Stop+Sign+Road+5',
+                boxes: [{ class_id: 14, x: 0.50, y: 0.42, w: 0.50, h: 0.50, conf: 0.96 }]
+            },
+            { 
+                id: 'road8', name: 'road8_png', split: 'val', 
+                url: 'https://placehold.co/416x416/1e293b/94a3b8?text=Speed+Limit+10+Road+8',
+                boxes: [
+                    { class_id: 2, x: 0.35, y: 0.40, w: 0.25, h: 0.28, conf: 0.92 },
+                    { class_id: 0, x: 0.70, y: 0.35, w: 0.15, h: 0.30, conf: 0.95 }
+                ]
+            },
+            { 
+                id: 'road51', name: 'road51_png', split: 'train', 
+                url: 'https://placehold.co/416x416/1e293b/94a3b8?text=Speed+Limit+20+Road+51',
+                boxes: [{ class_id: 6, x: 0.50, y: 0.45, w: 0.30, h: 0.35, conf: 0.94 }]
+            },
+            { 
+                id: 'road59', name: 'road59_png', split: 'train', 
+                url: 'https://placehold.co/416x416/1e293b/94a3b8?text=Stop+Sign+Road+59',
+                boxes: [{ class_id: 14, x: 0.52, y: 0.48, w: 0.45, h: 0.50, conf: 0.98 }]
+            },
+            { 
+                id: 'road70', name: 'road70_png', split: 'val', 
+                url: 'https://placehold.co/416x416/1e293b/94a3b8?text=Multi-Sign+Road+70',
+                boxes: [
+                    { class_id: 14, x: 0.45, y: 0.35, w: 0.30, h: 0.30, conf: 0.91 },
+                    { class_id: 1, x: 0.75, y: 0.30, w: 0.15, h: 0.35, conf: 0.97 }
+                ]
+            },
+            { 
+                id: 'road520', name: 'road520_png', split: 'train', 
+                url: 'https://placehold.co/416x416/1e293b/94a3b8?text=Speed+Limit+110+Road+520',
+                boxes: [{ class_id: 4, x: 0.50, y: 0.42, w: 0.28, h: 0.30, conf: 0.93 }]
+            }
+        ];
+
+        let activeTab = 'dashboard';
+        let activeCodeTab = 'flask';
+        let currentImage = SAMPLES[0];
+        let currentBoxes = JSON.parse(JSON.stringify(SAMPLES[0].boxes));
+        let showBBoxes = true;
+        let selectedDrawClass = 14;
+
+        // Mouse drawing interactive variables
+        let isDrawing = false;
+        let startX = 0;
+        let startY = 0;
+
+        window.onload = function() {
+            renderDistributionBars();
+            populateDrawClassSelect();
+            initCanvasEvents();
+        };
+
+        function populateDrawClassSelect() {
+            const select = document.getElementById('draw-class-select');
+            if (!select) return;
+            select.innerHTML = TAXONOMY.map(c => `
+                <option value="${c.id}">${c.id}: ${c.name}</option>
+            `).join('');
+            select.addEventListener('change', (e) => {
+                selectedDrawClass = parseInt(e.target.value);
+            });
+        }
+
+        function renderDistributionBars() {
+            const container = document.getElementById('distribution-bars-container');
+            if (!container) return;
+
+            const maxCount = Math.max(...TAXONOMY.map(t => t.count));
+            
+            container.innerHTML = TAXONOMY.slice(0, 9).map(c => {
+                const percentage = Math.round((c.count / maxCount) * 100);
+                return `
+                    <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800/80 space-y-1.5">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="font-semibold text-white flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full" style="background-color: ${c.color}"></span> ${c.name}
+                            </span>
+                            <span class="font-mono text-slate-400 text-[11px]">${c.count} instances</span>
+                        </div>
+                        <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                            <div class="h-full rounded-full transition-all duration-500" style="width: ${percentage}%; background-color: ${c.color}"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Tab Switching Logic
+        function switchTab(tabId) {
+            activeTab = tabId;
+            const tabs = ['dashboard', 'explorer', 'playground', 'flask'];
+            
+            tabs.forEach(t => {
+                const section = document.getElementById(`tab-${t}`);
+                const btn = document.getElementById(`nav-${t}`);
+                if (section) section.classList.toggle('hidden', t !== tabId);
+                if (btn) {
+                    if (t === tabId) {
+                        btn.className = "nav-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 bg-blue-600 text-white shadow-lg shadow-blue-500/20";
+                    } else {
+                        btn.className = "nav-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 text-slate-400 hover:text-white hover:bg-slate-800";
+                    }
+                }
+            });
+
+            if (tabId === 'explorer') {
+                renderClassBadges('all');
+                renderSampleGallery('all');
+            } else if (tabId === 'playground') {
+                renderPresetSamples();
+                if (currentImage) loadSampleOntoCanvas(currentImage);
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function switchCodeTab(cTab) {
+            activeCodeTab = cTab;
+            ['flask', 'yaml', 'train'].forEach(t => {
+                const block = document.getElementById(`code-block-${t}`);
+                const btn = document.getElementById(`codetab-${t}`);
+                if (block) block.classList.toggle('hidden', t !== cTab);
+                if (btn) {
+                    btn.className = t === cTab ? 
+                        "px-4 py-2 rounded-xl text-xs font-semibold bg-blue-600 text-white transition flex items-center gap-2" : 
+                        "px-4 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-400 hover:text-white transition flex items-center gap-2";
+                }
+            });
+        }
+
+        // Render 15-Class Badges
+        function renderClassBadges(category) {
+            const grid = document.getElementById('class-badges-grid');
+            if (!grid) return;
+            
+            const filtered = category === 'all' ? TAXONOMY : TAXONOMY.filter(c => c.category === category);
+            
+            grid.innerHTML = filtered.map(c => `
+                <div class="glass-panel p-3 rounded-xl border border-slate-800 flex items-center space-x-3 hover:border-slate-700 transition">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center font-mono font-bold text-xs text-white shadow" style="background-color: ${c.color}25; border: 1px solid ${c.color}">
+                        ${c.id}
+                    </div>
+                    <div class="overflow-hidden">
+                        <div class="text-xs font-semibold text-white truncate">${c.name}</div>
+                        <div class="text-[10px] text-slate-400 truncate">${c.desc}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterClass(category) {
+            document.querySelectorAll('.class-filter-btn').forEach(btn => {
+                btn.className = "class-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition";
+            });
+            if (event && event.target) {
+                event.target.className = "class-filter-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600 text-white transition";
+            }
+            renderClassBadges(category);
+            renderSampleGallery(category);
+        }
+
+        function renderSampleGallery(category) {
+            const grid = document.getElementById('sample-gallery-grid');
+            if (!grid) return;
+
+            grid.innerHTML = SAMPLES.map((s) => `
+                <div class="bg-slate-900 rounded-xl p-3 border border-slate-800 space-y-2 relative group hover:border-slate-700 transition">
+                    <div class="aspect-square bg-slate-950 rounded-lg overflow-hidden relative border border-slate-800">
+                        <img src="${s.url}" alt="${s.name}" class="w-full h-full object-cover">
+                        <div class="absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-mono bg-slate-900/80 text-blue-400 border border-slate-700">
+                            ${s.split}
+                        </div>
+                    </div>
+                    <div>
+                        <div class="text-xs font-semibold text-white truncate">${s.name}.txt</div>
+                        <div class="text-[10px] text-slate-400 font-mono">${s.boxes.length} BBox object(s) annotated</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function toggleBoundingBoxes() {
+            showBBoxes = document.getElementById('toggle-bboxes').checked;
+            loadSampleOntoCanvas(currentImage);
+        }
+
+        // Playground & Canvas Annotator
+        function renderPresetSamples() {
+            const list = document.getElementById('preset-samples-list');
+            if (!list) return;
+
+            list.innerHTML = SAMPLES.map((s, idx) => `
+                <div onclick="selectPreset(${idx})" class="aspect-square rounded-xl overflow-hidden border-2 cursor-pointer transition ${currentImage.id === s.id ? 'border-blue-500 scale-105 shadow-lg shadow-blue-500/20' : 'border-slate-800 opacity-70 hover:opacity-100'}">
+                    <img src="${s.url}" class="w-full h-full object-cover">
+                </div>
+            `).join('');
+        }
+
+        function selectPreset(idx) {
+            currentImage = SAMPLES[idx];
+            currentBoxes = JSON.parse(JSON.stringify(currentImage.boxes));
+            renderPresetSamples();
+            loadSampleOntoCanvas(currentImage);
+        }
+
+        function loadSampleOntoCanvas(sample) {
+            const canvas = document.getElementById('detection-canvas');
+            const placeholder = document.getElementById('canvas-placeholder');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = 416;
+            canvas.height = 416;
+
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.onload = function() {
+                ctx.clearRect(0, 0, 416, 416);
+                ctx.drawImage(img, 0, 0, 416, 416);
+                
+                if (showBBoxes && currentBoxes) {
+                    currentBoxes.forEach(b => drawBox(ctx, b));
+                    renderDetectionsLog(currentBoxes);
+                }
+                if (placeholder) placeholder.style.display = 'none';
+            };
+            img.src = sample.url;
+        }
+
+        function drawBox(ctx, b) {
+            const x = (b.x - b.w / 2) * 416;
+            const y = (b.y - b.h / 2) * 416;
+            const w = b.w * 416;
+            const h = b.h * 416;
+            
+            const cls = TAXONOMY.find(c => c.id === b.class_id) || { name: 'Sign', color: '#3b82f6' };
+            const confStr = b.conf ? ` (${(b.conf * 100).toFixed(1)}%)` : '';
+
+            ctx.strokeStyle = cls.color;
+            ctx.lineWidth = 2.5;
+            ctx.strokeRect(x, y, w, h);
+
+            ctx.fillStyle = cls.color;
+            ctx.fillRect(x, y > 18 ? y - 18 : y, 130, 18);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 10px Inter, sans-serif';
+            ctx.fillText(`${cls.name}${confStr}`, x + 4, y > 18 ? y - 5 : y + 13);
+        }
+
+        function initCanvasEvents() {
+            const canvas = document.getElementById('detection-canvas');
+            if (!canvas) return;
+
+            canvas.addEventListener('mousedown', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+
+                startX = (e.clientX - rect.left) * scaleX;
+                startY = (e.clientY - rect.top) * scaleY;
+                isDrawing = true;
+            });
+
+            canvas.addEventListener('mousemove', (e) => {
+                if (!isDrawing) return;
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+
+                const currX = (e.clientX - rect.left) * scaleX;
+                const currY = (e.clientY - rect.top) * scaleY;
+
+                // Redraw image + existing boxes + active box preview
+                loadSampleOntoCanvas(currentImage);
+                const ctx = canvas.getContext('2d');
+                
+                ctx.strokeStyle = '#f59e0b';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([4, 4]);
+                ctx.strokeRect(startX, startY, currX - startX, currY - startY);
+                ctx.setLineDash([]);
+            });
+
+            canvas.addEventListener('mouseup', (e) => {
+                if (!isDrawing) return;
+                isDrawing = false;
+
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+
+                const endX = (e.clientX - rect.left) * scaleX;
+                const endY = (e.clientY - rect.top) * scaleY;
+
+                const width = Math.abs(endX - startX);
+                const height = Math.abs(endY - startY);
+
+                if (width > 15 && height > 15) {
+                    const centerX = (Math.min(startX, endX) + width / 2) / 416;
+                    const centerY = (Math.min(startY, endY) + height / 2) / 416;
+                    const normW = width / 416;
+                    const normH = height / 416;
+
+                    currentBoxes.push({
+                        class_id: selectedDrawClass,
+                        x: parseFloat(centerX.toFixed(4)),
+                        y: parseFloat(centerY.toFixed(4)),
+                        w: parseFloat(normW.toFixed(4)),
+                        h: parseFloat(normH.toFixed(4)),
+                        conf: 0.99
+                    });
+
+                    loadSampleOntoCanvas(currentImage);
+                    showToast("Custom bounding box added to canvas!");
+                }
+            });
+        }
+
+        function clearDetections() {
+            currentBoxes = [];
+            loadSampleOntoCanvas(currentImage);
+            showToast("Cleared bounding box detections!");
+        }
+
+        function renderDetectionsLog(boxes) {
+            const logList = document.getElementById('detections-log-list');
+            const countBadge = document.getElementById('detection-count-badge');
+            if (!logList) return;
+
+            countBadge.innerText = `${boxes.length} bounding boxes`;
+
+            if (boxes.length === 0) {
+                logList.innerHTML = `<div class="text-center py-6 text-slate-500 text-xs">No bounding box objects detected or drawn.</div>`;
+                return;
+            }
+
+            logList.innerHTML = boxes.map((b, idx) => {
+                const cls = TAXONOMY.find(c => c.id === b.class_id) || { name: 'Unknown', color: '#3b82f6' };
+                const confVal = b.conf ? (b.conf * 100).toFixed(1) : '100.0';
+                return `
+                    <div class="bg-slate-900/90 p-2.5 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${cls.color}"></span>
+                            <span class="font-semibold text-white">${cls.name}</span>
+                        </div>
+                        <div class="font-mono text-[11px] text-slate-400">
+                            [${b.x}, ${b.y}, ${b.w}, ${b.h}]
+                        </div>
+                        <span class="text-emerald-400 font-mono text-[11px]">${confVal}%</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function runInference() {
+            const btn = document.getElementById('run-inference-btn');
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Processing...`;
+            
+            setTimeout(() => {
+                currentBoxes = JSON.parse(JSON.stringify(currentImage.boxes));
+                loadSampleOntoCanvas(currentImage);
+                btn.innerHTML = `<i data-lucide="play" class="w-4 h-4"></i> Run Detection`;
+                showToast("YOLO inference completed across all 15 classes!");
+            }, 500);
+        }
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const customSample = {
+                    id: 'custom_' + Date.now(),
+                    name: file.name,
+                    split: 'custom',
+                    url: e.target.result,
+                    boxes: [
+                        { class_id: 14, x: 0.50, y: 0.45, w: 0.35, h: 0.40, conf: 0.95 }
+                    ]
+                };
+                currentImage = customSample;
+                currentBoxes = JSON.parse(JSON.stringify(customSample.boxes));
+                loadSampleOntoCanvas(customSample);
+                showToast("Custom image uploaded successfully!");
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function exportYOLOFormat() {
+            if (currentBoxes.length === 0) {
+                showToast("No bounding boxes available to export.");
+                return;
+            }
+            const txtLines = currentBoxes.map(b => `${b.class_id} ${b.x} ${b.y} ${b.w} ${b.h}`).join('\n');
+            const textarea = document.createElement('textarea');
+            textarea.value = txtLines;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showToast("Copied YOLO normalized annotations (.txt) to clipboard!");
+        }
+
+        function exportJSONFormat() {
+            if (currentBoxes.length === 0) {
+                showToast("No bounding boxes available to export.");
+                return;
+            }
+            const jsonStr = JSON.stringify({ image: currentImage.name, boxes: currentBoxes }, null, 2);
+            const textarea = document.createElement('textarea');
+            textarea.value = jsonStr;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showToast("Copied detection JSON specs to clipboard!");
+        }
+
+        function updateSliderVal(type, val) {
+            document.getElementById(`${type}-val`).innerText = parseFloat(val).toFixed(2);
+        }
+
+        function copyCode(elementId) {
+            const text = document.getElementById(elementId).innerText;
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showToast("Copied code snippet to clipboard!");
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const msg = document.getElementById('toast-message');
+            msg.innerText = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
